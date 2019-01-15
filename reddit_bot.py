@@ -15,3 +15,20 @@ common_spammy_words = ["Donald Trump Gold Coin",
                         "Stainless"]
 
 
+def find_spammer(search_query):
+    authors = []
+    #First, let's collect all submissions by their title and author
+    for submission in reddit.subreddit("all").search(search_query, sort="new", limit=11):
+        print(submission.title, submission.author, submission.url)
+        #Next, let's add the author's name to our list
+        if submission.author not in authors:
+            authors.append(submission.author)
+
+    return authors
+
+
+
+
+
+
+
