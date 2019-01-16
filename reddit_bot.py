@@ -1,12 +1,13 @@
 import praw
 import random
-#
+import time
 
-reddit = praw.Reddit(client_id = "U4-FjLqQ9G00kw",
-                client_secret= "QGOer2R8Vws4BjzYjYzxOGqphM0",
-                user_agent = "reddit_bot",
+
+reddit = praw.Reddit(client_id = "aaspic_KLSpn9g",
+                client_secret= "kTuhgKNR5VVMq9ZjvD1u3OzetR4",
+                user_agent = "spam-bot",
                 password = "fener93250991",
-                username = "hoppazipla"
+                username = "spamd_bot"
              )
 
 
@@ -58,16 +59,66 @@ if __name__ == "__main__":
                         if w in submit_title:
                             trash = True
                             junk = [submit_id, submit_title]
-                            if junk not in trash_content:
-                                trash_content.append(submit_id,submit_id, str(author))
+                            if junk not in spam_content:
+                                spam_content.append([junk, str(author)])
 
-                    #Let's add a counter for trash & submission count
-                    if trash:
-                        sub_count +=1
-                        trash_count +=1
+                        if trash:
+                            sub_count+=1
+                        trash_count+=1
+
+                #Let's create a scoreboard for trash
+                try:
+                    trash_score = trash_count/sub_count
+                except: trash_score = 0.0
+                print("User {}'s trash score is {}.".format(str(author), round(trash_score,3)))
+
+                if trash_score >= 0.5:
+                    spam_authors[str(author)] = [trash_score,sub_count]
+
+                for trash in trash_content:
+                    spam_content.append(trash)
+
             except Exception as e:
                 print(str(e))
 
+                # Now, let's iterate through spam content
+                for spam in spam_content:
+                    spam.id = spam[0]
+                    spam_user = spam[2]
+                    submission = reddit.submission(id=spam[0])
+                    created_time = submission.created_utc
+                    if time.time() - created_time <= 86400:
+                        link = "https://reddit.com"+submission.permalink
+                        
+                        message = """Beep-Boop. 
+            
+            I am a bot that can detect spam posts, and 
+            
+            this feels like spam. At least {}% out of
+            
+            the {} submissions from /u/{} appear to be 
+            
+            for sales affiliated links. Don't let 
+            
+            spam take over Reddit!""".format(
+            round(spam_authors[spam_user][0]*100,2), 
+            spam_authors[spam_user][1], 
+            spam_user)
+
+                        try:
+                            with open("posted_url.txt", "r") as f:
+                                already_posted = f.read().split("\n")
+                            if link not in already_posted:
+                                print(message)
+                                submission.reply(message)
+                                print("We've posted to {}, gonna go sleep for 12 minutes.".format(link))
+                                with open("posted_url.txt", "a") as f:
+                                    f.write(link + "\n")
+                                time.sleep(12*60)
+                                break
+                        except Exception as e:
+                            print(str(e))
+                            time.sleep(12*60)
 
 
 
@@ -77,4 +128,21 @@ if __name__ == "__main__":
 
 
 
-                    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
